@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventario de Productos</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <meta name="theme-color" content="#18e322">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+ 
+  <style>/* Eliminar flechas del input number en todos los navegadores compatibles */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #f5fff5;
+  color: #222;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  font-size: 2em;
+  margin-bottom: 20px;
+  border: 2px solid #50b750;
+  padding: 10px;
+  background: #c2f0c2;
+  box-shadow: 0 0 10px #a6e6a6;
+  border-radius: 10px;
+  color: #1a4d1a;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+input, button, form {
+  font-size: 1rem;
+  padding: 10px;
+  border: 2px solid #90c090;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  color: #333;
+  transition: box-shadow 0.3s, background 0.3s;
+}
+
+input:focus, button:hover {
+  box-shadow: 0 0 8px #78d478;
+  background: #f0fff0;
+}
+
+form {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  padding: 15px;
+  border: 2px solid #90c090;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #bfffbf;
+}
+
+.productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.producto {
+  background: #ffffff;
+  border: 2px solid #aaddaa;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 10px #bfffbf;
+  color: #333;
+}
+
+.producto > div {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.producto > div > div:last-child {
+  flex: 1;
+  text-align: right;
+  margin-left: 0;
+}
+
+.producto img {
+  width: 100px;
+  height: auto;
+  border: 2px solid #90c090;
+  border-radius: 8px;
+}
+
+.producto-info table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  background: #f9fff9;
+}
+
+.producto-info th, .producto-info td {
+  border: 2px solid #90c090;
+  padding: 8px;
+  text-align: center;
+}
+
+.cantidad-controles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.btn-eliminar {
+  background: #f8c5bd;
+  color: #a60000;
+  border: 2px solid #c51a1a;
+  padding: 8px;
+  margin-top: 10px;
+  border-radius: 8px;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.btn-eliminar:hover {
+  background: #f65555;
+  box-shadow: 0 0 8px #983f3a;
+}
+
+#exportExcel {
+  margin: 20px auto;
+  display: block;
+  background: #d4f8d4;
+  color: #205020;
+  border: 2px solid #90c090;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  box-shadow: 0 0 10px #bfffbf;
+  cursor: pointer;
+}
+
+.btn-toggle {
+  background: #b5e6b5;
+  color: #204d20;
+  border: 2px solid #90c090;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.btn-toggle:hover {
+  background: #a0dba0;
+  box-shadow: 0 0 8px #90c090;
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 10px;
+  }
+
+  form, input, button {
+    width: 100%;
+  }
+
+  .producto-info table, .producto-info th, .producto-info td {
+    font-size: 0.9rem;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+
+   <h2 id="tituloEditable" contenteditable="true">Inventario de Productos</h2>
+<!-- Dentro del <body>, reemplaza la parte inicial así: -->
+<div class="header">
+ 
+  <input type="text" id="busqueda" placeholder="Buscar producto...">
+  <button id="toggleFormulario">Agregar nuevo producto</button>
+
+  <form id="formulario">
+    <input type="text" id="nombre" placeholder="Nombre del producto" required>
+    <input type="text" id="color" placeholder="Colores (separados por coma)" required>
+    <input type="text" id="talla" placeholder="Tallas (separadas por coma)" required>
+    <input type="number" id="precioPublico" placeholder="Precio público" required>
+    <input type="number" id="precioPermitido" placeholder="Precio permitido">
+    <input type="file" id="foto" accept="image/*">
+    <button type="submit">Agregar Producto</button>
+  </form>
+</div>
+
+
+<div class="productos" id="lista"></div>
+
+<button id="exportExcel">Exportar a Excel</button>
+
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script>
+let productos = JSON.parse(localStorage.getItem('productos')) || [];
+let tituloGuardado = localStorage.getItem('tituloInventario');
+let estadoAbierto = JSON.parse(localStorage.getItem('estadoAbierto')) || {};
+
+if (tituloGuardado) {
+  document.getElementById('tituloEditable').textContent = tituloGuardado;
+}
+
+document.getElementById('tituloEditable').addEventListener('input', () => {
+  localStorage.setItem('tituloInventario', document.getElementById('tituloEditable').textContent.trim());
+});
+
+document.getElementById('toggleFormulario').addEventListener('click', () => {
+  const form = document.getElementById('formulario');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+
+function guardarProductos() {
+  localStorage.setItem('productos', JSON.stringify(productos));
+}
+
+function mostrarProductos(filtro = '') {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+
+  productos.forEach((p, i) => {
+    if (filtro && !p.nombre.toLowerCase().includes(filtro.toLowerCase())) return;
+
+    const div = document.createElement('div');
+    div.className = 'producto';
+    const estaAbierto = estadoAbierto[i] || false;
+
+    let tabla = `
+      <div class="producto-info" id="info-${i}" style="display: ${estaAbierto ? 'block' : 'none'}">
+        <table>
+          <tr><th>Color</th><th>Talla</th><th>Cantidad</th></tr>
+          ${p.variantes.map((v, j) => `
+            <tr>
+              <td>${v.color}</td>
+              <td>${v.talla}</td>
+              <td class="cantidad-controles">
+                <button onclick="restar(${i}, ${j})">-</button>
+                <input type="number" min="0" value="${v.cantidad}" 
+                       onchange="actualizarCantidad(${i}, ${j}, this.value)" 
+                       onkeydown="if(event.key==='Enter'){this.blur();}" 
+                       style="width: 50px; text-align:center;">
+                <button onclick="sumar(${i}, ${j})">+</button>
+              </td>
+            </tr>
+          `).join('')}
+        </table>
+        <button onclick="eliminarProducto(${i})" class="btn-eliminar">Eliminar producto</button>
+      </div>
+    `;
+
+   div.innerHTML = `
+  <div>
+    <img src="${p.foto}" alt="${p.nombre}">
+    <div>
+      <strong>${p.nombre}</strong><br>
+      <div><span class="label">Precio público:</span> <span class="value">$${p.precioPublico.toFixed(2)}</span></div>
+      <div><span class="label">Precio permitido:</span> <span class="value">${p.precioPermitido !== null ? `$${p.precioPermitido.toFixed(2)}` : "N/A"}</span></div>
+      
+      <button class="btn-toggle" onclick="toggleTabla(${i})">Mostrar/ocultar info</button>
+
+    </div>
+  </div>
+  ${tabla}
+`;
+
+
+    lista.appendChild(div);
+  });
+
+  localStorage.setItem('estadoAbierto', JSON.stringify(estadoAbierto));
+}
+
+function toggleTabla(i) {
+  const info = document.getElementById(`info-${i}`);
+  const visible = info.style.display === 'block';
+  info.style.display = visible ? 'none' : 'block';
+  estadoAbierto[i] = !visible;
+  localStorage.setItem('estadoAbierto', JSON.stringify(estadoAbierto));
+}
+
+function sumar(i, j) {
+  productos[i].variantes[j].cantidad++;
+  guardarProductos();
+  mostrarProductos(document.getElementById('busqueda').value);
+}
+
+function restar(i, j) {
+  if (productos[i].variantes[j].cantidad > 0) {
+    productos[i].variantes[j].cantidad--;
+    guardarProductos();
+    mostrarProductos(document.getElementById('busqueda').value);
+  }
+}
+
+function actualizarCantidad(i, j, valor) {
+  let cantidad = parseInt(valor);
+  if (isNaN(cantidad) || cantidad < 0) cantidad = 0;
+  productos[i].variantes[j].cantidad = cantidad;
+  guardarProductos();
+  mostrarProductos(document.getElementById('busqueda').value);
+}
+
+function eliminarProducto(i) {
+  if (confirm("¿Seguro que deseas eliminar este producto?")) {
+    productos.splice(i, 1);
+    delete estadoAbierto[i];
+    guardarProductos();
+    mostrarProductos(document.getElementById('busqueda').value);
+  }
+}
+
+document.getElementById('formulario').addEventListener('submit', e => {
+  e.preventDefault();
+
+  const nombre = document.getElementById('nombre').value;
+  const colores = document.getElementById('color').value.split(',').map(c => c.trim());
+  const tallas = document.getElementById('talla').value.split(',').map(t => t.trim());
+  const precioPublico = parseFloat(document.getElementById('precioPublico').value);
+  const precioPermitido = parseFloat(document.getElementById('precioPermitido').value) || null;
+  const fotoInput = document.getElementById('foto');
+
+  const variantes = [];
+  colores.forEach(color => {
+    tallas.forEach(talla => {
+      variantes.push({ color, talla, cantidad: 0 });
+    });
+  });
+
+  function agregarConFoto(fotoUrl) {
+    productos.push({ nombre, precioPublico, precioPermitido, foto: fotoUrl, variantes });
+    guardarProductos();
+    mostrarProductos();
+    document.getElementById('formulario').reset();
+    document.getElementById('formulario').style.display = 'none';
+  }
+
+  if (fotoInput.files.length) {
+    const reader = new FileReader();
+    reader.onload = () => agregarConFoto(reader.result);
+    reader.readAsDataURL(fotoInput.files[0]);
+  } else {
+    agregarConFoto("https://via.placeholder.com/100");
+  }
+});
+
+document.getElementById('busqueda').addEventListener('input', (e) => {
+  mostrarProductos(e.target.value);
+});
+
+function exportarAExcel() {
+  if (productos.length === 0) {
+    alert("No hay productos para exportar.");
+    return;
+  }
+
+  const filas = [];
+  filas.push([
+    "Nombre Producto",
+    "Precio Público",
+    "Precio Permitido",
+    "Color",
+    "Talla",
+    "Cantidad"
+  ]);
+
+  productos.forEach(p => {
+    p.variantes.forEach(v => {
+      filas.push([
+        p.nombre,
+        p.precioPublico,
+        p.precioPermitido !== null ? p.precioPermitido : "N/A",
+        v.color,
+        v.talla,
+        v.cantidad
+      ]);
+    });
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+
+  XLSX.writeFile(wb, "inventario_productos.xlsx");
+}
+
+document.getElementById('exportExcel').addEventListener('click', exportarAExcel);
+
+mostrarProductos();
+</script>
+</body>
+</html>
